@@ -28,6 +28,8 @@ and TensorFlow 2 (eager) code for training and testing NLT models.
 If you use this repository or find it useful, please cite the paper
 ([BibTeX](http://nlt.csail.mit.edu/assets/nlt.bib)).
 
+This is not an officially supported Google product.
+
 
 ## Before You Start...
 
