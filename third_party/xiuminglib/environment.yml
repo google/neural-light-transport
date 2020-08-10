@@ -1,0 +1,19 @@
+name: xiuminglib
+channels:
+  - conda-forge
+dependencies:
+  - python=3.6
+  - numpy
+  - scipy
+  - matplotlib=2.0.2
+  - pillow
+  - tqdm
+  - trimesh
+  - tensorflow-gpu
+  - pip
+  - pip:
+    - opencv-python
+    - OpenEXR
+  - sphinx=2.0.1
+  - sphinx_rtd_theme
+  - ipython
