@@ -20,7 +20,7 @@ specularity, subsurface scattering, global illumination, and etc.):
 
 Dragon (specular) | Dragon (subsurface scattering) | Dragon (diffuse interreflection)
 ------------ | ------------- | -------------
-![dragon_specular](assets/dragon_specular_ckpt-80_pred.gif) | ![dragon_sss](assets/coming-soon.png) | ![dragon_inter](assets/coming-soon.png)
+![dragon_specular](assets/dragon_specular_ckpt-80_pred.gif) | ![dragon_sss](assets/dragon_sss_ckpt-33_pred.gif) | ![dragon_inter](assets/coming-soon.png)
 
 This repository contains our rendered data, the code that rendered those data,
 and TensorFlow 2 (eager) code for training and testing NLT models.
