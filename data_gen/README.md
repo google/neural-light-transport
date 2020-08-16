@@ -27,7 +27,7 @@ Blender 2.7x. More specifically, we used Blender 2.78c.
 1. Clone this repository:
     ```
     cd "$ROOT"
-    git clone https://github.com/xiumingzhang/neural-light-transport.git
+    git clone https://github.com/google/neural-light-transport.git
     ```
 
 1. "Install" Blender-Python (the binaries are pre-built, so just download

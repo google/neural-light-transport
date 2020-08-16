@@ -19,7 +19,7 @@ compatibility, see
 1. Clone this repository:
     ```
     cd "$ROOT"
-    git clone https://github.com/xiumingzhang/neural-light-transport.git
+    git clone https://github.com/google/neural-light-transport.git
     ```
 
 1. Install a Conda environment with all dependencies:
