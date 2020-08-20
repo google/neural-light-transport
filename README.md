@@ -1,9 +1,9 @@
 # Neural Light Transport (NLT)
 
-[[Project]](http://nlt.csail.mit.edu/)
 [[Paper]](http://nlt.csail.mit.edu/assets/nlt.pdf)
 [[arXiv]](https://arxiv.org/abs/2008.03806)
 [[Video]](https://www.youtube.com/watch?v=OGEnCWZihHE)
+[[Project]](http://nlt.csail.mit.edu/)
 [[BibTeX]](http://nlt.csail.mit.edu/assets/nlt.bib)
 
 ![teaser](assets/teaser.png)
@@ -98,4 +98,5 @@ reader. Otherwise, email [Xiuming Zhang](http://people.csail.mit.edu/xiuming).
 
 ## Changelog
 
+* 08/20/2020: Updated the paper and the video.
 * 08/07/2020: Initial release.
