@@ -2,7 +2,8 @@
 
 [[Project]](http://nlt.csail.mit.edu/)
 [[Paper]](http://nlt.csail.mit.edu/assets/nlt.pdf)
-[[Video]](http://nlt.csail.mit.edu/assets/nlt.mp4)
+[[arXiv]](https://arxiv.org/abs/2008.03806)
+[[Video]](https://www.youtube.com/watch?v=OGEnCWZihHE)
 [[BibTeX]](http://nlt.csail.mit.edu/assets/nlt.bib)
 
 ![teaser](assets/teaser.png)
