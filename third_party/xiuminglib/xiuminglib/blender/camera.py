@@ -629,7 +629,7 @@ def backproject_to_3d(xys, cam, obj_names=None, world_coords=False):
                 first_intersect_objname = obj_name
                 first_intersect_facei = facei
                 first_intersect_normal = \
-                    obj2world * normal if world_coords else normal
+                    obj2world.to_3x3() * normal if world_coords else normal
                 first_intersect_normal.normalize()
                 # Re-normalize in case transforming to world coordinates has
                 # ruined the unit length
