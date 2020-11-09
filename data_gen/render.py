@@ -48,7 +48,7 @@ from tqdm import tqdm
 
 # Blender
 import bpy
-from mathutils import Vector
+from mathutils import Vector, bvhtree
 
 import xiuminglib as xm
 
@@ -162,6 +162,7 @@ def main(args):
     save_float16_npy(uv2cam[:, :, :2], join(args.outdir, 'uv2cam.npy'))
     save_float16_npy(cam2uv[:, :, :2], join(args.outdir, 'cam2uv.npy'))
 
+    # FIXME: split light and view cosines
     # Compute view and light cosines
     lvis_camspc, cvis_camspc = calc_cosines(
         cam_obj.location, light['position'], xys, intersect, obj.name)
@@ -211,29 +212,74 @@ def main(args):
     dump_json(nn, join(args.outdir, 'nn.json'))
 
 
-def calc_cosines(cam_loc, light_loc, xys, intersect, obj_name):
+def calc_view_cosines(cam_loc, xys, intersect, obj_name):
     imw = xys[:, 0].max() + 1
     imh = xys[:, 1].max() + 1
 
     view_cosines = np.zeros((imh, imw))
-    light_cosines = np.zeros((imh, imw))
 
     for oname, xy, loc, normal in tqdm(
             zip(
                 intersect['obj_names'], xys, intersect['locs'],
                 intersect['normals']),
-            total=xys.shape[0], desc="Filling pixels for cosine maps"):
+            total=xys.shape[0], desc="Filling view cosines"):
         if loc is None or oname != obj_name:
             continue
 
-        p2l = (Vector(light_loc) - loc).normalized()
         p2c = (cam_loc - loc).normalized()
         normal = normal.normalized()
 
-        light_cosines[xy[1], xy[0]] = p2l.dot(normal)
         view_cosines[xy[1], xy[0]] = p2c.dot(normal)
 
-    return light_cosines, view_cosines
+    return view_cosines
+
+
+def calc_light_cosines(light_loc, xys, cam_intersect, obj):
+    """Self-occlusion is considered here, so pixels in cast shadow have 0
+    cosine values.
+    """
+    light_loc = Vector(light_loc)
+
+    # Cast rays from the light to determine occlusion
+    bm = xm.blender.object.get_bmesh(obj)
+    tree = bvhtree.BVHTree.FromBMesh(bm)
+    world2obj = obj.matrix_world.inverted()
+    occluded = [False] * len(cam_intersect['locs'])
+    for i, loc in enumerate(cam_intersect['locs']):
+        if loc is not None:
+            ray_from = world2obj * light_loc
+            ray_to = world2obj * loc
+            _, _, _, ray_dist = xm.blender.object.raycast(
+                tree, ray_from, ray_to)
+            if ray_dist is None:
+                # Numerical issue, but hey, the ray is not blocked
+                occluded[i] = False
+            else:
+                reach = np.isclose(ray_dist, (ray_to - ray_from).magnitude)
+                occluded[i] = not reach
+
+    imw = xys[:, 0].max() + 1
+    imh = xys[:, 1].max() + 1
+
+    light_cosines = np.zeros((imh, imw))
+
+    for oname, xy, loc, normal, occlu in tqdm(
+            zip(
+                cam_intersect['obj_names'], xys, cam_intersect['locs'],
+                cam_intersect['normals'], occluded),
+            total=xys.shape[0], desc="Filling light cosines"):
+        if loc is None or oname != obj.name:
+            continue
+
+        if occlu:
+            continue
+
+        p2l = (Vector(light_loc) - loc).normalized()
+        normal = normal.normalized()
+
+        light_cosines[xy[1], xy[0]] = p2l.dot(normal)
+
+    return light_cosines
 
 
 def calc_bidir_mapping(
@@ -262,7 +308,7 @@ def calc_bidir_mapping(
     cam2uv_locs, cam2uv_vals = [], []
     for xy, oname, fi in tqdm(
             zip(xys, intersect['obj_names'], intersect['face_i']),
-            total=xys.shape[0], desc="Filling pixels for camera-UV mappings"):
+            total=xys.shape[0], desc="Filling camera-UV mappings"):
         if fi is None or oname != obj.name:
             continue
 
