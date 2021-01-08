@@ -100,6 +100,6 @@ reader. Otherwise, email [Xiuming Zhang](http://people.csail.mit.edu/xiuming).
 
 ## Changelog
 
-* 01/05/2021: See commit 858a8af; v3 paper and video (TOG camera-ready ver.).
+* 01/05/2021: See the 01/07/2021 commits; v3 paper and video (TOG camera-ready ver.).
 * 08/20/2020: Updated the paper and the video.
 * 08/07/2020: Initial release.
