@@ -3,7 +3,6 @@ __all__ = [
     'blender',
     'geometry',
     'io',
-    'launch',
     'vis',
     # Modules
     'camera',

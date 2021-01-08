@@ -33,6 +33,9 @@ from util import io as ioutil, logging as logutil
 flags.DEFINE_string(
     'ckpt', '/path/to/ckpt-100', "path to checkpoint (prefix only)")
 flags.DEFINE_integer(
+    'batch_size_override', None,
+    "use a batch size different than what was used during training")
+flags.DEFINE_integer(
     'n_obs_batches', 1,
     "number of observation batches used for the observation path")
 flags.DEFINE_integer('fps', 24, "frames per second for the result video")
@@ -72,10 +75,9 @@ def restore_model(config):
     return model
 
 
-def infer(model, datapipe, feat_agg, outroot):
-    datapipe = list(datapipe)
-    for batch_i, batch in tqdm(
-            enumerate(datapipe), total=len(datapipe), desc="Infer batches"):
+def infer(model, datapipe, feat_agg, outroot, report_every=10):
+    batch_i = 0
+    for batch in datapipe:
         outdir = join(outroot, 'batch{i:09d}'.format(i=batch_i))
 
         bs = batch[0].shape[0]
@@ -86,6 +88,10 @@ def infer(model, datapipe, feat_agg, outroot):
         # Visualize
         outdir = outdir.format(i=batch_i)
         model.vis_batch(to_vis, outdir, 'test')
+
+        batch_i += 1
+        if batch_i % report_every == 0:
+            logger.info("Done inferring %d batches", batch_i)
 
 
 def extract_feat(model, datapipe):
@@ -124,6 +130,8 @@ def extract_feat(model, datapipe):
 def main(_):
     config_ini = get_config_ini()
     config = ioutil.read_config(config_ini)
+    if FLAGS.batch_size_override is not None:
+        config.set('DEFAULT', 'bs', str(FLAGS.batch_size_override))
 
     # Model
     model = restore_model(config)

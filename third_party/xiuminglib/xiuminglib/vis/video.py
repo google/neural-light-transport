@@ -92,7 +92,7 @@ def make_apng(
             h, save_all=True, append_images=imgs_loaded[1:],
             duration=duration)
 
-    logger.info("Images written as an animated PNG to:\n\t%s", outpath)
+    logger.debug("Images written as an animated PNG to:\n\t%s", outpath)
 
 
 def make_video(

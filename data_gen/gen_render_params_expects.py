@@ -24,15 +24,19 @@ Example Usage:
 
     python "$ROOT"/neural-light-transport/data_gen/gen_render_params_expects.py \
         --mode='trainvali+test' \
-        --scene="$ROOT"/data/scenes/dragon_specular.blend \
+        --scene="$ROOT"/data/scenes-v2/dragon_specular.blend \
+        --cached_uv_unwrap="$ROOT"/data/scenes-v2/dragon_specular_uv.pickle \
         --trainvali_cams="$ROOT"'/data/trainvali_cams/*.json' \
         --test_cams="$ROOT"'/data/test_cams/*.json' \
         --trainvali_lights="$ROOT"'/data/trainvali_lights/*.json' \
         --test_lights="$ROOT"'/data/test_lights/*.json' \
         --cam_nn_json="$ROOT"/data/neighbors/cams.json \
         --light_nn_json="$ROOT"/data/neighbors/lights.json \
-        --outroot="$ROOT"/output/render/dragon_specular_imh512_uvs512_spp256/ \
-        --tmpdir="$ROOT"/tmp/
+        --imh='512' \
+        --uvs='1024' \
+        --spp='256' \
+        --outroot="$ROOT"/data/scenes-v2/dragon_specular_imh512_uvs1024_spp256/ \
+        --jobdir="$ROOT"/tmp/specular
 """
 
 from argparse import ArgumentParser
@@ -49,6 +53,9 @@ parser.add_argument(
         "'trainvali+test'"))
 parser.add_argument(
     '--scene', type=str, required=True, help="path to the .blend scene")
+parser.add_argument(
+    '--cached_uv_unwrap', type=str, required=True,
+    help="path to the .pickle UV unwrapping")
 parser.add_argument(
     '--trainvali_cams', type=str, required=True, help=(
         "path to the camera .json used for training/validation; use a single "
@@ -79,8 +86,8 @@ parser.add_argument(
 parser.add_argument(
     '--outroot', type=str, required=True, help="output directory root")
 parser.add_argument(
-    '--tmpdir', type=str, required=True,
-    help="directory holding task parameter files")
+    '--jobdir', type=str, required=True,
+    help="directory holding task parameter files for worders to read")
 parser.add_argument(
     '--imh', type=int, default=256,
     help="image height (width derived assuming the same aspect ratio)")
@@ -130,13 +137,13 @@ def gen_tasks(args):
 
 
 def main(args):
-    tmpdir = abspath(args.tmpdir)
+    jobdir = abspath(args.jobdir)
 
-    params_f = join(tmpdir, 'render_params.txt')
-    expects_f = join(tmpdir, 'render_expects.txt')
+    params_f = join(jobdir, 'render_params.txt')
+    expects_f = join(jobdir, 'render_expects.txt')
 
-    if not exists(tmpdir):
-        makedirs(tmpdir)
+    if not exists(jobdir):
+        makedirs(jobdir)
 
     params_h = open(params_f, 'w')
     expects_h = open(expects_f, 'w')
@@ -152,18 +159,18 @@ def main(args):
                 pref=pref, i=i, c=cam_name, l=light_name))
 
         params_h.write((
-            '--scene={scene} --cam_json={cam_json} --light_json={light_json} '
-            '--cam_nn_json={cam_nn_json} --light_nn_json={light_nn_json} '
-            '--imh={imh} --uvs={uvs} --spp={spp} --outdir={outdir}\n').format(
-                scene=abspath(args.scene), cam_json=cam_json,
-                light_json=light_json, cam_nn_json=args.cam_nn_json,
-                light_nn_json=args.light_nn_json, imh=args.imh, uvs=args.uvs,
-                spp=args.spp, outdir=outdir))
+            '--scene={scene} --cached_uv_unwrap={unwrap} --cam_json={cam_json} '
+            '--light_json={light_json} --cam_nn_json={cam_nn_json} '
+            '--light_nn_json={light_nn_json} --imh={imh} --uvs={uvs} '
+            '--spp={spp} --outdir={outdir}\n').format(
+                scene=abspath(args.scene), unwrap=args.cached_uv_unwrap,
+                cam_json=cam_json, light_json=light_json,
+                cam_nn_json=args.cam_nn_json, light_nn_json=args.light_nn_json,
+                imh=args.imh, uvs=args.uvs, spp=args.spp, outdir=outdir))
         expects_h.write(
-            '{uv2cam} {cvis} {lvis} {diffuse} {rgb} {rgb_camspc}\n'.format(
+            '{uv2cam} {cvis} {lvis} {rgb} {rgb_camspc}\n'.format(
                 uv2cam=join(outdir, 'uv2cam.npy'),
                 cvis=join(outdir, 'cvis.png'), lvis=join(outdir, 'lvis.png'),
-                diffuse=join(outdir, 'diffuse.png'),
                 rgb=join(outdir, 'rgb.png'),
                 rgb_camspc=join(outdir, 'rgb_camspc.png')))
 

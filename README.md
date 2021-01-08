@@ -1,8 +1,10 @@
 # Neural Light Transport (NLT)
 
+ACM Transactions on Graphics 2020
+
 [[Paper]](http://nlt.csail.mit.edu/assets/nlt.pdf)
 [[arXiv]](https://arxiv.org/abs/2008.03806)
-[[Video]](https://www.youtube.com/watch?v=OGEnCWZihHE)
+[[Video]](https://www.youtube.com/watch?v=gWdKjxCmYMI)
 [[Project]](http://nlt.csail.mit.edu/)
 [[BibTeX]](http://nlt.csail.mit.edu/assets/nlt.bib)
 
@@ -13,7 +15,7 @@ This is the authors' code release for:
 > Xiuming Zhang, Sean Fanello, Yun-Ta Tsai, Tiancheng Sun, Tianfan Xue,
 > Rohit Pandey, Sergio Orts-Escolano, Philip Davidson, Christoph Rhemann,
 > Paul Debevec, Jonathan T. Barron, Ravi Ramamoorthi, William T. Freeman  
-> **arXiv** 2020
+> **TOG 2020**
 
 in which we show how to train neural networks to perform simultaneous relighting
 and view sythesis, exhibiting complex light transport effects (such as
@@ -21,7 +23,7 @@ specularity, subsurface scattering, global illumination, and etc.):
 
 Dragon (specular) | Dragon (subsurface scattering)
 ------------ | -------------
-![dragon_specular](assets/dragon_specular_ckpt-80_pred.gif) | ![dragon_sss](assets/dragon_sss_ckpt-33_pred.gif)
+![dragon_specular](assets/dragon_specular_pred.gif) | ![dragon_sss](assets/dragon_sss_pred.gif)
 
 This repository contains our rendered data, the code that rendered those data,
 and TensorFlow 2 (eager) code for training and testing NLT models.
@@ -98,5 +100,6 @@ reader. Otherwise, email [Xiuming Zhang](http://people.csail.mit.edu/xiuming).
 
 ## Changelog
 
+* 01/05/2021: See commit 858a8af; v3 paper and video (TOG camera-ready ver.).
 * 08/20/2020: Updated the paper and the video.
 * 08/07/2020: Initial release.

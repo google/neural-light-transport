@@ -23,19 +23,21 @@ used for rendering.
 
 Example Usage:
 
+PYTHONPATH="$ROOT"/neural-light-transport/data_gen:"$PYTHONPATH" \
     "$WHERE_YOU_INSTALLED_BLENDER"/blender-2.78c-linux-glibc219-x86_64/blender \
         --background \
         --python "$ROOT"/neural-light-transport/data_gen/render.py \
         -- \
-        --scene="$ROOT"/data/scenes/dragon.blend \
+        --scene="$ROOT"/data/scenes-v2/dragon_specular.blend \
+        --cached_uv_unwrap="$ROOT"/data/scenes-v2/dragon_specular_uv.pickle \
         --cam_json="$ROOT"/data/trainvali_cams/P28R.json \
         --light_json="$ROOT"/data/trainvali_lights/L330.json \
         --cam_nn_json="$ROOT"/data/neighbors/cams.json \
         --light_nn_json="$ROOT"/data/neighbors/lights.json \
         --imh='512' \
-        --uvs='256' \
-        --spp='64' \
-        --outdir="$ROOT"/output/render/dragon/trainvali_000020852_P28R_L330
+        --uvs='1024' \
+        --spp='256' \
+        --outdir="$ROOT"/output/render/dragon/trainvali_000021183_P28R_L330
 """
 
 from sys import argv
@@ -60,7 +62,7 @@ parser = ArgumentParser(description="")
 parser.add_argument(
     '--scene', type=str, required=True, help="path to the .blend scene")
 parser.add_argument(
-    '--cached_uv_unwrap', type=str, default=None, help=(
+    '--cached_uv_unwrap', type=str, required=True, help=(
         "path to the cached .pickle of UV unwrapping, which needs doing only "
         "once per scene"))
 parser.add_argument(
@@ -90,6 +92,7 @@ parser.add_argument(
 def main(args):
     # Open scene
     xm.blender.scene.open_blend(args.scene)
+    obj = bpy.data.objects['object']
 
     # Remove existing cameras and lights, if any
     for o in bpy.data.objects:
@@ -123,13 +126,6 @@ def main(args):
     xm.blender.render.render(rgb_camspc_f)
     rgb_camspc = xm.io.img.load(rgb_camspc_f, as_array=True)[:, :, :3]
 
-    # Render diffuse RGB
-    obj = bpy.data.objects['object']
-    make_diffuse(obj)
-    diffuse_camspc_f = join(args.outdir, 'diffuse_camspc.png')
-    xm.blender.render.render(diffuse_camspc_f, obj_names=obj.name)
-    diffuse_camspc = xm.io.img.load(diffuse_camspc_f, as_array=True)[:, :, :3]
-
     # Render alpha
     alpha_f = join(args.outdir, 'alpha.png')
     xm.blender.render.render_alpha(alpha_f, samples=args.spp)
@@ -153,7 +149,7 @@ def main(args):
 
     # Compute mapping between UV and camera space
     uv2cam, cam2uv = calc_bidir_mapping(
-        obj, xys, intersect, args.uvs, cached_unwrap=args.cached_uv_unwrap)
+        args.cached_uv_unwrap, obj.name, xys, intersect, args.uvs)
     uv2cam = add_b_ch(uv2cam)
     cam2uv = add_b_ch(cam2uv)
     uv2cam[alpha < 1] = 0 # mask out interpolated values that fall outside
@@ -162,23 +158,24 @@ def main(args):
     save_float16_npy(uv2cam[:, :, :2], join(args.outdir, 'uv2cam.npy'))
     save_float16_npy(cam2uv[:, :, :2], join(args.outdir, 'cam2uv.npy'))
 
-    # FIXME: split light and view cosines
-    # Compute view and light cosines
-    lvis_camspc, cvis_camspc = calc_cosines(
-        cam_obj.location, light['position'], xys, intersect, obj.name)
+    # Compute light cosines, considering occlusion
+    lvis_camspc = calc_light_cosines(
+        light['position'], xys, intersect, obj)
     lvis_camspc = xm.img.denormalize_float(np.clip(lvis_camspc, 0, 1))
+    xm.io.img.write_img(lvis_camspc, join(args.outdir, 'lvis_camspc.png'))
+
+    # Compute view cosines
+    cvis_camspc = calc_view_cosines(
+        cam_obj.location, xys, intersect, obj.name)
     cvis_camspc = xm.img.denormalize_float(np.clip(cvis_camspc, 0, 1))
     xm.io.img.write_img(cvis_camspc, join(args.outdir, 'cvis_camspc.png'))
-    xm.io.img.write_img(lvis_camspc, join(args.outdir, 'lvis_camspc.png'))
 
     # Remap buffers to UV space
     cvis = remap(cvis_camspc, cam2uv)
     lvis = remap(lvis_camspc, cam2uv)
-    diffuse = remap(diffuse_camspc, cam2uv)
     rgb = remap(rgb_camspc, cam2uv)
     xm.io.img.write_img(cvis, join(args.outdir, 'cvis.png'))
     xm.io.img.write_img(lvis, join(args.outdir, 'lvis.png'))
-    xm.io.img.write_img(diffuse, join(args.outdir, 'diffuse.png'))
     xm.io.img.write_img(rgb, join(args.outdir, 'rgb.png'))
     if args.debug:
         # Remap it backwards to check if we get back the camera-space buffer
@@ -188,14 +185,11 @@ def main(args):
         # trying to match the camera-space ground truth
         cvis_camspc_repro = remap(cvis, uv2cam)
         lvis_camspc_repro = remap(lvis, uv2cam)
-        diffuse_camspc_repro = remap(diffuse, uv2cam)
         rgb_camspc_repro = remap(rgb, uv2cam)
         xm.io.img.write_img(
             cvis_camspc_repro, join(args.outdir, 'cvis_camspc_repro.png'))
         xm.io.img.write_img(
             lvis_camspc_repro, join(args.outdir, 'lvis_camspc_repro.png'))
-        xm.io.img.write_img(
-            diffuse_camspc_repro, join(args.outdir, 'diffuse_camspc_repro.png'))
         xm.io.img.write_img(
             rgb_camspc_repro, join(args.outdir, 'rgb_camspc_repro.png'))
 
@@ -283,17 +277,13 @@ def calc_light_cosines(light_loc, xys, cam_intersect, obj):
 
 
 def calc_bidir_mapping(
-        obj, xys, intersect, uvs, cached_unwrap=None, max_l1_interp=4):
+        cached_unwrap, obj_name, xys, intersect, uvs, max_l1_interp=4):
     imw = xys[:, 0].max() + 1
     imh = xys[:, 1].max() + 1
 
-    # Load or compute the UV unwrapping by Blender
-    if cached_unwrap is None:
-        # Might be expensive if your model has many vertices
-        fi_li_vi_u_v = xm.blender.object.smart_uv_unwrap(obj, area_weight=1)
-    else:
-        with open(cached_unwrap, 'rb') as h:
-            fi_li_vi_u_v = pk.load(h)
+    # Load the UV unwrapping by Blender
+    with open(cached_unwrap, 'rb') as h:
+        fi_li_vi_u_v = pk.load(h)
 
     # UV convention:
     # (0, 1)
@@ -309,7 +299,7 @@ def calc_bidir_mapping(
     for xy, oname, fi in tqdm(
             zip(xys, intersect['obj_names'], intersect['face_i']),
             total=xys.shape[0], desc="Filling camera-UV mappings"):
-        if fi is None or oname != obj.name:
+        if fi is None or oname != obj_name:
             continue
 
         uv = fi_li_vi_u_v[fi][:, 2:]
@@ -359,13 +349,6 @@ def calc_bidir_mapping(
         locs, vals, (uvs, uvs), method=interp_method)
 
     return uv2cam, cam2uv
-
-
-def make_diffuse(obj):
-    node_tree = obj.active_material.node_tree
-    diffuse_out = node_tree.nodes['Diffuse BSDF'].outputs['BSDF']
-    mat_in = node_tree.nodes['Material Output'].inputs['Surface']
-    node_tree.links.new(diffuse_out, mat_in)
 
 
 if __name__ == '__main__':

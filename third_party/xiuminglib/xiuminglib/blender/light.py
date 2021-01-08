@@ -118,13 +118,15 @@ def add_light_area(xyz=(0, 0, 0), rot_vec_rad=(0, 0, 0), name=None,
     return area
 
 
-def add_light_point(xyz=(0, 0, 0), name=None, size=0, energy=100):
+def add_light_point(
+        xyz=(0, 0, 0), name=None, size=0, color=(1, 1, 1), energy=100):
     """Adds an omnidirectional point lamp.
 
     Args:
         xyz (tuple(float), optional): Location.
         name (str, optional): Light name.
         size (float, optional): Light size; the larger the softer shadows are.
+        color (tuple(float), optional): Color of the light.
         energy (float, optional): Light intensity.
 
     Returns:
@@ -136,6 +138,9 @@ def add_light_point(xyz=(0, 0, 0), name=None, size=0, energy=100):
     if name is not None:
         point.name = name
 
+    if len(color) == 3:
+        color += (1.,)
+
     point.data.shadow_soft_size = size
 
     # Strength
@@ -143,6 +148,8 @@ def add_light_point(xyz=(0, 0, 0), name=None, size=0, energy=100):
     if engine == 'CYCLES':
         point.data.node_tree.nodes['Emission'].inputs[
             'Strength'].default_value = energy
+        point.data.node_tree.nodes['Emission'].inputs[
+            'Color'].default_value = color
     else:
         raise NotImplementedError(engine)
 

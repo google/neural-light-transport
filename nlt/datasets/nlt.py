@@ -14,7 +14,7 @@
 
 # pylint: disable=relative-beyond-top-level
 
-from os.path import join
+from os.path import join, exists
 from itertools import product
 import re
 import numpy as np
@@ -35,7 +35,12 @@ logger = logutil.Logger(loggee="datasets/nlt")
 class Dataset(BaseDataset):
     def __init__(self, config, mode, **kwargs):
         self.data_root = config.get('DEFAULT', 'data_root')
-        self.data_paths = ioutil.read_json(self.data_root.rstrip('/') + '.json')
+        data_status_path = self.data_root.rstrip('/') + '.json'
+        if not exists(data_status_path):
+            raise FileNotFoundError((
+                "Data status JSON not found at \n\t%s\nRun "
+                "data_gen/gen_file_stats.py to generate it") % data_status_path)
+        self.data_paths = ioutil.read_json(data_status_path)
         # Because paths in JSON are relative, prepend data root directory
         for _, paths in self.data_paths.items():
             for k, v in paths.items():
