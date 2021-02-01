@@ -1,9 +1,10 @@
 # Neural Light Transport (NLT)
 
-ACM Transactions on Graphics 2020
+ACM Transactions on Graphics 2021
 
-[[Paper]](http://nlt.csail.mit.edu/assets/nlt.pdf)
-[[arXiv]](https://arxiv.org/abs/2008.03806)
+[[Original Resolution]](http://nlt.csail.mit.edu/assets/nlt.pdf)
+[[arXiv]](https://arxiv.org/pdf/2008.03806.pdf)
+[[Publisher]](https://doi.org/10.1145/3446328)
 [[Video]](https://www.youtube.com/watch?v=gWdKjxCmYMI)
 [[Project]](http://nlt.csail.mit.edu/)
 [[BibTeX]](http://nlt.csail.mit.edu/assets/nlt.bib)
@@ -15,7 +16,7 @@ This is the authors' code release for:
 > Xiuming Zhang, Sean Fanello, Yun-Ta Tsai, Tiancheng Sun, Tianfan Xue,
 > Rohit Pandey, Sergio Orts-Escolano, Philip Davidson, Christoph Rhemann,
 > Paul Debevec, Jonathan T. Barron, Ravi Ramamoorthi, William T. Freeman  
-> **TOG 2020**
+> **TOG 2021**
 
 in which we show how to train neural networks to perform simultaneous relighting
 and view sythesis, exhibiting complex light transport effects (such as
