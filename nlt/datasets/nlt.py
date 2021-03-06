@@ -39,7 +39,7 @@ class Dataset(BaseDataset):
         if not exists(data_status_path):
             raise FileNotFoundError((
                 "Data status JSON not found at \n\t%s\nRun "
-                "data_gen/gen_file_stats.py to generate it") % data_status_path)
+                "$REPO/data_gen/postproc.py to generate it") % data_status_path)
         self.data_paths = ioutil.read_json(data_status_path)
         # Because paths in JSON are relative, prepend data root directory
         for _, paths in self.data_paths.items():
