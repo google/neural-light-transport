@@ -2,12 +2,9 @@
 
 ACM Transactions on Graphics 2021
 
-[[Original Resolution]](http://nlt.csail.mit.edu/assets/nlt.pdf)
 [[arXiv]](https://arxiv.org/pdf/2008.03806.pdf)
-[[Publisher]](https://doi.org/10.1145/3446328)
 [[Video]](https://www.youtube.com/watch?v=gWdKjxCmYMI)
 [[Project]](http://nlt.csail.mit.edu/)
-[[BibTeX]](http://nlt.csail.mit.edu/assets/nlt.bib)
 
 ![teaser](assets/teaser.png)
 
@@ -30,7 +27,7 @@ This repository contains our rendered data, the code that rendered those data,
 and TensorFlow 2 (eager) code for training and testing NLT models.
 
 If you use this repository or find it useful, please cite the paper
-([BibTeX](http://nlt.csail.mit.edu/assets/nlt.bib)).
+([BibTeX](http://people.csail.mit.edu/xiuming/docs/bib/nlt.bib)).
 
 This is not an officially supported Google product.
 
